@@ -31,6 +31,7 @@ export default function DashboardPage() {
         setLoading(false)
       }
     }
+    
     const fetchKycStatus = async () => {
           try {
             const response = await apiClient.get("/api/player/kycStatus")

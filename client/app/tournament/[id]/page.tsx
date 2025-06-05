@@ -22,6 +22,7 @@ import { ThemeToggle } from "@/components/theme-toggle"
 import { KYCGuard } from "@/components/kyc-guard"
 import { apiClient } from "@/lib/api-client"
 import { Team, Tournament } from "@/types"
+import { useAuth } from "@/components/auth-provider"
 
 export default function TournamentDetailsPage() {
   const params = useParams()
@@ -33,74 +34,19 @@ export default function TournamentDetailsPage() {
   const [tournament, setTournament] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [userTeams, setUserTeams] = useState<Team[]>([])
-
-
-  useEffect(() => {
-  const dummyTournament: Tournament = {
-  id: "1",
-  title: "Valorant Masters Invitational",
-  game: "Valorant",
-  status: "open",
-  description: "An elite-level competition for top-tier Valorant teams.",
-  date: "2025-06-15",
-  maxPlayers: 16,
-  prizePool: "$10,000",
-  trustScoreThreshold: 75,
-  organizer: "Elite Esports Org",
-  registrationDeadline: "2025-06-10",
-  currentRegistrations: 8,
-  location: "Online",
-  rules: ["No cheating", "5 players per team", "Check-in 30 minutes before match"],
-  schedule: [
-    { stage: "Group Stage", date: "2025-06-16", teams: "16" },
-    { stage: "Semi Finals", date: "2025-06-18", teams: "4" },
-    { stage: "Finals", date: "2025-06-20", teams: "2" },
-  ],
-}
-
-const dummyTeams: Team[] = [
-  {
-    id: "team-1",
-    name: "Phantom Reapers",
-    game: "Valorant",
-    isEligible: true,
-    averageTrustScore: 80,
-    memberCount: 5,
-  },
-  {
-    id: "team-2",
-    name: "Spike Squad",
-    game: "Valorant",
-    isEligible: false,
-    averageTrustScore: 60,
-    memberCount: 4,
-  },
-  {
-    id: "team-3",
-    name: "Ghost Ops",
-    game: "CS:GO",
-    isEligible: true,
-    averageTrustScore: 90,
-    memberCount: 5,
-  },
-]
-
-
-      setTournament(dummyTournament)
-      setUserTeams(dummyTeams)
-      setLoading(false)
-}, [])
+  const {userProfile,loading:authLoading}=useAuth()
+ 
 
   useEffect(() => {
     const fetchTournamentData = async () => {
       try {
-        const [tournamentResponse, teamsResponse] = await Promise.all([
-          apiClient.get(`/api/tournaments/${params.id}`),
-          apiClient.get("/api/teams/my-teams"),
+        const [tournamentResponse] = await Promise.all([
+          apiClient.get(`/api/tournament/${params.id}`),
         ])
 
         setTournament(tournamentResponse.data)
-        setUserTeams(teamsResponse.data)
+        console.log(userProfile)
+        setUserTeams(userProfile.teams)
       } catch (error) {
         console.error("Failed to fetch tournament data:", error)
         toast({
@@ -118,9 +64,10 @@ const dummyTeams: Team[] = [
 
   const eligibleTeams = userTeams.filter(
     (team: any) =>
-      team.game === tournament?.game &&
-      team.isEligible &&
-      team.averageTrustScore >= (tournament?.trustScoreThreshold || 0),
+      team.game === tournament?.game 
+    // &&
+       
+      // team.averageTrustScore >= (tournament?.trustScoreThreshold || 0),
   )
 
   const formatDate = (dateString: string) => {
@@ -161,7 +108,7 @@ const dummyTeams: Team[] = [
 
   const selectedTeamData = eligibleTeams.find((team: any) => team.id === selectedTeam)
 
-  if (loading) {
+  if (loading&&authLoading&&!userProfile) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-primary"></div>
@@ -339,7 +286,9 @@ const dummyTeams: Team[] = [
                 </Card>
               )}
 
-              {eligibleTeams.length > 0 && tournament.status === "open" && (
+              {eligibleTeams.length > 0 && 
+              // tournament.status === "open"   &&
+              (
                 <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
                   <DialogTrigger asChild>
                     <Button className="w-full" size="lg">
@@ -361,11 +310,11 @@ const dummyTeams: Team[] = [
                           </SelectTrigger>
                           <SelectContent>
                             {eligibleTeams.map((team: any) => (
-                              <SelectItem key={team.id} value={team.id}>
+                              <SelectItem key={team._id} value={team._id}>
                                 <div className="flex items-center justify-between w-full">
-                                  <span>{team.name}</span>
+                                  <span>{team.teamName}</span>
                                   <Badge variant="outline" className="ml-2">
-                                    {team.memberCount} players
+                                    {team.players.length} players
                                   </Badge>
                                 </div>
                               </SelectItem>

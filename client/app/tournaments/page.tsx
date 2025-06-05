@@ -18,68 +18,22 @@ export default function TournamentsPage() {
   const [tournaments, setTournaments] = useState<Tournament[]>([])
   const [loading, setLoading] = useState(true)
 
-  // useEffect(() => {
-  //   const fetchTournaments = async () => {
-  //     try {
-  //       const response = await apiClient.get("/api/tournaments")
-  //       setTournaments(response.data)
-  //     } catch (error) {
-  //       console.error("Failed to fetch tournaments:", error)
-  //     } finally {
-  //       setLoading(false)
-  //     }
-  //   }
-
-  //   fetchTournaments()
-  
-  // }, [])
-
   useEffect(() => {
-  const dummyTournaments = [
-    {
-      id: "1",
-      title: "Valorant Summer Clash",
-      game: "Valorant",
-      status: "open",
-      description: "Join the ultimate Valorant tournament this summer!",
-      date: "2025-07-15",
-      maxPlayers: 64,
-      prizePool: "$2,000",
-      trustScoreThreshold: 80,
-      organizer: "GameHub",
-      registrationDeadline: "2025-07-10",
-    },
-    {
-      id: "2",
-      title: "League of Legends Masters",
-      game: "League of Legends",
-      status: "closed",
-      description: "Top teams clash for the LoL title.",
-      date: "2025-06-01",
-      maxPlayers: 32,
-      prizePool: "$5,000",
-      trustScoreThreshold: 90,
-      organizer: "ProGaming",
-      registrationDeadline: "2025-05-28",
-    },
-    {
-      id: "3",
-      title: "CS2 Pro Shootout",
-      game: "Counter-Strike 2",
-      status: "upcoming",
-      description: "A thrilling CS2 tournament for elite players.",
-      date: "2025-08-10",
-      maxPlayers: 128,
-      prizePool: "$10,000",
-      trustScoreThreshold: 75,
-      organizer: "eBattleZone",
-      registrationDeadline: "2025-08-05",
-    },
-  ]
+    const fetchTournaments = async () => {
+      try {
+        const response = await apiClient.get("/api/tournament")
+        setTournaments(response.data)
+      } catch (error) {
+        console.error("Failed to fetch tournaments:", error)
+      } finally {
+        setLoading(false)
+      }
+    }
 
-  setTournaments(dummyTournaments)
-  setLoading(false)
-}, [])
+    fetchTournaments()
+  
+  }, [])
+
 
 
   const filteredTournaments = tournaments.filter(
@@ -150,9 +104,9 @@ export default function TournamentsPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredTournaments.map((tournament: any) => (
               <Card
-                key={tournament.id}
+                key={tournament._id}
                 className="hover:shadow-lg transition-all duration-200 cursor-pointer group"
-                onClick={() => router.push(`/tournament/${tournament.id}`)}
+                onClick={() => router.push(`/tournament/${tournament._id}`)}
               >
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between">
@@ -203,7 +157,7 @@ export default function TournamentsPage() {
                     disabled={tournament.status === "closed"}
                     onClick={(e) => {
                       e.stopPropagation()
-                      router.push(`/tournament/${tournament.id}`)
+                      router.push(`/tournament/${tournament._id}`)
                     }}
                   >
                     {tournament.status === "closed" ? "Registration Closed" : "View Details"}
