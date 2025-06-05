@@ -14,10 +14,33 @@ export const profileSchema = z.object({
     .min(10, { message: "Phone number must be at least 10 digits" })
     .max(10, { message: "Phone number is too long" })
     .regex(/^\d+$/, { message: "Phone number must contain only digits" }),
-  bgmiId: z.string().optional(),
-  valorantId: z.string().optional(),
-  freeFireId: z.string().optional(),
-  counterStrike2Id: z.string().optional(),
+ bgmiId: z
+    .string()
+    .optional()
+    .refine((id) => !id || /^[0-9]{5,15}$/.test(id), {
+      message: "BGMI ID must be 5–15 digits",
+    }),
+
+  valorantId: z
+    .string()
+    .optional()
+    .refine((id) => !id || /^[a-zA-Z0-9]{3,16}#[a-zA-Z0-9]{3,5}$/.test(id), {
+      message: "Valorant ID must be like 'Player#1234'",
+    }),
+
+  freeFireId: z
+    .string()
+    .optional()
+    .refine((id) => !id || /^[0-9]{5,15}$/.test(id), {
+      message: "Free Fire ID must be 5–15 digits",
+    }),
+
+  counterStrike2Id: z
+    .string()
+    .optional()
+    .refine((id) => !id || /^STEAM_[0-5]:[01]:\d+$/.test(id), {
+      message: "CS2 ID must be like 'STEAM_0:1:12345678'",
+    }),
 });
 
 

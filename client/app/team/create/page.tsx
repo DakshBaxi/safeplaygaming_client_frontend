@@ -144,9 +144,9 @@ export default function CreateTeamPage() {
       router.push("/dashboard")
     } catch (error: any) {
       console.error("Team creation error:", error)
-      toast({
+        toast({
         title: "Error",
-        description: error.response?.data?.message || "Failed to create team",
+        description: error.response?.data?.error || "Failed to create profile",
         variant: "destructive",
       })
     } finally {

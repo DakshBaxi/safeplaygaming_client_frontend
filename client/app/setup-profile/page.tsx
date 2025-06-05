@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -30,7 +30,7 @@ export default function SetupProfilePage() {
     const [errors, setErrors] = useState<Record<string, string>>({})
   const router = useRouter()
   const { toast } = useToast()
-  const { setUserProfile } = useAuth()
+  const { setUserProfile,userProfile } = useAuth()
 
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
@@ -39,6 +39,12 @@ export default function SetupProfilePage() {
     //   setGamerTagValid(null)
     // }
   }
+
+  useEffect(()=>{
+    if(userProfile){
+      router.push('/dashboard')
+    }
+  },[userProfile])
 
   // const checkGamerTagAvailability = async () => {
   //   if (!formData.gamerTag) return
@@ -192,6 +198,7 @@ export default function SetupProfilePage() {
                 value={formData.bgmiId}
                 onChange={(e) => handleInputChange("bgmiId", e.target.value)}
               />
+              {errors.bgmiId && <p className="text-sm text-red-500">{errors.bgmiId}</p>}
             </div>
 
             <div className="space-y-2">
@@ -203,6 +210,7 @@ export default function SetupProfilePage() {
                 value={formData.valorantId}
                 onChange={(e) => handleInputChange("valorantId", e.target.value)}
               />
+               {errors.valorantId && <p className="text-sm text-red-500">{errors.valorantId}</p>}
             </div>
               <div className="space-y-2">
               <Label htmlFor="freeFireId">Free Fire ID</Label>
@@ -213,6 +221,7 @@ export default function SetupProfilePage() {
                 value={formData.freeFireId}
                 onChange={(e) => handleInputChange("freeFireId", e.target.value)}
               />
+               {errors.freeFireId && <p className="text-sm text-red-500">{errors.freeFireId}</p>}
             </div>
               <div className="space-y-2">
               <Label htmlFor="counterStrike2Id">Counter Strike 2 ID</Label>
@@ -223,7 +232,9 @@ export default function SetupProfilePage() {
                 value={formData.counterStrike2Id}
                 onChange={(e) => handleInputChange("counterStrike2Id", e.target.value)}
               />
+               {errors.counterStrike2Id && <p className="text-sm text-red-500">{errors.counterStrike2Id}</p>}
             </div>
+           
           </div>
 
           <Button

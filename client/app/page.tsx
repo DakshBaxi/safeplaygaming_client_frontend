@@ -14,8 +14,6 @@ export default function Home() {
         router.push("/login")
       } else if (!userProfile) {
         router.push("/setup-profile")
-      } else if (userProfile.kycStatus === "approved") {
-        router.push("/dashboard")
       } else {
         // KYC Guard will handle this case
         router.push("/dashboard")
