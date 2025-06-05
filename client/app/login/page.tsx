@@ -22,7 +22,7 @@ export default function LoginPage() {
     if(userProfile){
       router.push('/dashboard')
     }
-    if(user||!userProfile){
+    if(user&&!userProfile){
       router.push('/setup-profile')
     }
   },[userProfile])
