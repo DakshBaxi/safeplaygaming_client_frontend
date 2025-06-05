@@ -40,11 +40,11 @@ export default function SetupProfilePage() {
     // }
   }
 
-  useEffect(()=>{
-    if(userProfile){
-      router.push('/dashboard')
-    }
-  },[userProfile])
+  // useEffect(()=>{
+  //   if(userProfile){
+  //     router.push('/dashboard')
+  //   }
+  // },[userProfile])
 
   // const checkGamerTagAvailability = async () => {
   //   if (!formData.gamerTag) return
