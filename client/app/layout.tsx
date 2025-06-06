@@ -9,9 +9,8 @@ import { AuthProvider } from "@/components/auth-provider"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "GameHub - Gaming Tournament Platform",
+  title: "SafePlayGaming - Gaming Tournament Platform",
   description: "Join tournaments, create teams, and compete with the best gamers",
-    generator: 'v0.dev'
 }
 
 export default function RootLayout({

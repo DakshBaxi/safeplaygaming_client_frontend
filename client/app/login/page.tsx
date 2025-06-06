@@ -91,7 +91,7 @@ export default function LoginPage() {
               <Gamepad2 className="h-8 w-8 text-primary" />
             </div>
           </div>
-          <CardTitle className="text-2xl font-bold">Welcome to GameHub</CardTitle>
+          <CardTitle className="text-2xl font-bold">Welcome to SafePlay Gaming</CardTitle>
           <CardDescription>Login with your Google account to continue</CardDescription>
         </CardHeader>
 
