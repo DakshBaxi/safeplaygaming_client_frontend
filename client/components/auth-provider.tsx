@@ -37,6 +37,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
   const [userProfile, setUserProfile] = useState<any>(null)
+   const [authChecked, setAuthChecked] = useState(false) 
   const router = useRouter()
 
   // ✅ Used both in effect and exposed via context

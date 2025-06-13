@@ -1,5 +1,4 @@
 "use client"
-
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { useParams } from "next/navigation"
@@ -17,7 +16,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { useToast } from "@/hooks/use-toast"
-import { ArrowLeft, Calendar, Users, Star, Clock, MapPin, Shield } from "lucide-react"
+import { ArrowLeft, Calendar, Users, Star, Clock, MapPin, Shield, CheckCircle } from "lucide-react"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { KYCGuard } from "@/components/kyc-guard"
 import { apiClient } from "@/lib/api-client"
@@ -34,10 +33,13 @@ export default function TournamentDetailsPage() {
   const [tournament, setTournament] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [userTeams, setUserTeams] = useState<Team[]>([])
+  const [isAlreadyRegistered, setIsAlreadyRegistered] = useState(false)
+  const [registeredTeam, setRegisteredTeam] = useState<any>(null)
   const {userProfile,loading:authLoading}=useAuth()
  
 
   useEffect(() => {
+    if (authLoading || !userProfile) return
     const fetchTournamentData = async () => {
       try {
         const [tournamentResponse] = await Promise.all([
@@ -45,8 +47,13 @@ export default function TournamentDetailsPage() {
         ])
 
         setTournament(tournamentResponse.data)
-        console.log(userProfile)
-        setUserTeams(userProfile.teams)
+       if (userProfile && userProfile.teams) {
+          setUserTeams(userProfile.teams)
+          // Check if user has already registered for this tournament
+          checkRegistrationStatus(tournamentResponse.data, userProfile?.teams)
+        }
+        
+     
       } catch (error) {
         console.error("Failed to fetch tournament data:", error)
         toast({
@@ -60,7 +67,21 @@ export default function TournamentDetailsPage() {
     }
 
     fetchTournamentData()
-  }, [params.id, toast])
+  }, [params.id, toast,authLoading,userProfile])
+
+  const checkRegistrationStatus = (tournamentData: any, teams: Team[]) => {
+    // Check if any of the user's teams are already registered for this tournament
+    const registeredTeam = teams.find((team: any) => 
+      tournamentData.registeredTeams?.some((regTeam: any) => 
+        regTeam.teamId === team._id || regTeam._id === team._id
+      )
+    )
+    
+    if (registeredTeam) {
+      setIsAlreadyRegistered(true)
+      setRegisteredTeam(registeredTeam)
+    }
+  }
 
   const eligibleTeams = userTeams.filter(
     (team: any) =>
@@ -83,7 +104,7 @@ export default function TournamentDetailsPage() {
 
     setApplying(true)
     try {
-      await apiClient.post(`/api/tournaments/${tournament.id}/apply`, {
+      await apiClient.post(`/api/player/tournament/${tournament._id}/apply`, {
         teamId: selectedTeam,
       })
 
@@ -286,7 +307,24 @@ export default function TournamentDetailsPage() {
                 </Card>
               )}
 
-              {eligibleTeams.length > 0 && 
+              {/* Show already registered message if user has registered */}
+              {isAlreadyRegistered && (
+                <Card>
+                  <CardContent className="p-6 text-center">
+                    <CheckCircle className="h-8 w-8 mx-auto mb-2 text-green-500" />
+                    <h4 className="font-medium mb-2">Already Registered</h4>
+                    <p className="text-sm text-muted-foreground mb-2">
+                      Your team "{registeredTeam?.teamName || registeredTeam?.name}" is already registered for this tournament.
+                    </p>
+                    <Button variant="outline" onClick={() => router.push("/my-tournaments")}>
+                      View My Tournaments
+                    </Button>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Show apply button only if not already registered */}
+              {!isAlreadyRegistered && eligibleTeams.length > 0 && 
               // tournament.status === "open"   &&
               (
                 <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
@@ -346,7 +384,7 @@ export default function TournamentDetailsPage() {
                 </Dialog>
               )}
 
-              {eligibleTeams.length === 0 && tournament.status === "open" && (
+              {!isAlreadyRegistered && eligibleTeams.length === 0 && tournament.status === "open" && (
                 <Card>
                   <CardContent className="p-6 text-center">
                     <Users className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
@@ -361,7 +399,7 @@ export default function TournamentDetailsPage() {
                 </Card>
               )}
 
-              {tournament.status === "closed" && (
+              {tournament.status === "closed" && !isAlreadyRegistered && (
                 <Card>
                   <CardContent className="p-6 text-center">
                     <Clock className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />

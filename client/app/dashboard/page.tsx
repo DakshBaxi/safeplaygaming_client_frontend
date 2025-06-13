@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Users, Trophy, Plus, Search, Clock, CheckCircle, XCircle, LogOut } from "lucide-react"
+import { Users, Trophy, Plus, Search, Clock, CheckCircle, XCircle, LogOut, Calendar, MapPin } from "lucide-react"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { useAuth } from "@/components/auth-provider"
 import { KYCGuard } from "@/components/kyc-guard"
@@ -13,18 +13,19 @@ import { apiClient } from "@/lib/api-client"
 
 export default function DashboardPage() {
   const router = useRouter()
-  const { userProfile, logout,loading:authLoading } = useAuth()
-  const [dashboardData, setDashboardData] = useState<any>(null)
+  const { userProfile, logout, loading: authLoading } = useAuth()
+  const [myTournamentsData, setMyTournamentsData] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [status, setStatus] = useState<"pending" | "approved" | "rejected">("pending")
   const [loadingStatus, setLoadingStatus] = useState(true)
 
   useEffect(() => {
-     if (authLoading || !userProfile) return
-    const fetchDashboardData = async () => {
+    if (authLoading || !userProfile) return
+    const fetchMyTournamentsData = async () => {
       try {
-        const response = await apiClient.get("/api/dashboard")
-        setDashboardData(response.data)
+        const response = await apiClient.get("/api/player/my-tournaments")
+        setMyTournamentsData(response.data)
+        console.log("My tournaments data:", response.data)
       } catch (error) {
         console.error("Failed to fetch dashboard data:", error)
       } finally {
@@ -33,19 +34,19 @@ export default function DashboardPage() {
     }
     
     const fetchKycStatus = async () => {
-          try {
-            const response = await apiClient.get("/api/player/kycStatus")
-            setStatus(response.data.status)
-          } catch (error) {
-            console.error("Failed to fetch KYC status:", error)
-          } finally {
-            setLoadingStatus(false)
-          }
-        }
+      try {
+        const response = await apiClient.get("/api/player/kycStatus")
+        setStatus(response.data.status)
+      } catch (error) {
+        console.error("Failed to fetch KYC status:", error)
+      } finally {
+        setLoadingStatus(false)
+      }
+    }
     
-        fetchKycStatus()
-    fetchDashboardData()
-  }, [authLoading,userProfile])
+    fetchKycStatus()
+    fetchMyTournamentsData()
+  }, [authLoading, userProfile])
 
   const getKycStatusColor = (status: string) => {
     switch (status) {
@@ -69,7 +70,42 @@ export default function DashboardPage() {
     }
   }
 
-  if (loading||loadingStatus||authLoading) {
+  const getTournamentStatusColor = (status: string) => {
+    switch (status) {
+      case "open":
+        return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300"
+      case "ongoing":
+        return "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300"
+      case "completed":
+        return "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300"
+      case "cancelled":
+        return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300"
+      default:
+        return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300"
+    }
+  }
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    })
+  }
+
+  const formatGame = (game: string) => {
+    const gameNames: { [key: string]: string } = {
+      'bgmi': 'BGMI',
+      'valorant': 'Valorant',
+      'freeFire': 'Free Fire',
+      'counterStrike2': 'Counter Strike 2'
+    }
+    return gameNames[game] || game
+  }
+
+  if (loading || loadingStatus || authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-primary"></div>
@@ -88,7 +124,7 @@ export default function DashboardPage() {
             </div>
             <div className="flex items-center space-x-2">
               <ThemeToggle />
-              <Button variant="outline"  onClick={logout}>
+              <Button variant="outline" onClick={logout}>
                 <LogOut className="h-4 w-4" />
                 <p>LogOut</p>
               </Button>
@@ -176,59 +212,120 @@ export default function DashboardPage() {
           </Card>
 
           {/* Active Team */}
-  {userProfile?.teams?.length > 0 && (
-  <Card className="mb-6">
-    <CardHeader>
-      <CardTitle>Active Teams</CardTitle>
-    </CardHeader>
-    <CardContent>
-      <div className="space-y-4">
-        {userProfile.teams.map((team: any) => (
-          <div
-            key={team._id}
-            className="flex items-center justify-between border-b pb-2 last:border-none last:pb-0"
-          >
-            <div>
-              <h3 className="font-semibold">{team.teamName}</h3>
-              <p className="text-sm text-muted-foreground">
-                {(team.players?.length || 0) } members • {team.game}
-              </p>
-            </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => router.push(`/team/${team._id}`)}
-            >
-              View Team
-            </Button>
-          </div>
-        ))}
-      </div>
-    </CardContent>
-  </Card>
-)}
-
+          {userProfile?.teams?.length > 0 && (
+            <Card className="mb-6">
+              <CardHeader>
+                <CardTitle>Active Teams</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {userProfile.teams.map((team: any) => (
+                    <div
+                      key={team._id}
+                      className="flex items-center justify-between border-b pb-2 last:border-none last:pb-0"
+                    >
+                      <div>
+                        <h3 className="font-semibold">{team.teamName}</h3>
+                        <p className="text-sm text-muted-foreground">
+                          {(team.players?.length || 0)} members • {formatGame(team.game)}
+                        </p>
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => router.push(`/team/${team._id}`)}
+                      >
+                        View Team
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Recent Tournament Applications */}
           <Card>
             <CardHeader>
-              <CardTitle>Recent Tournament Applications</CardTitle>
+              <CardTitle>My Tournament Registrations</CardTitle>
               <CardDescription>Track your tournament registration status</CardDescription>
             </CardHeader>
             <CardContent>
-              {dashboardData?.recentTournaments?.length > 0 ? (
-                <div className="space-y-3">
-                  {dashboardData.recentTournaments.map((tournament: any, index: number) => (
-                    <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
-                      <div>
-                        <h4 className="font-medium">{tournament.name}</h4>
-                        <p className="text-sm text-muted-foreground">{tournament.date}</p>
+              {myTournamentsData?.tournaments && myTournamentsData.tournaments.length > 0 ? (
+                <div className="space-y-4">
+                  {myTournamentsData.tournaments.slice(0, 5).map((item: any, index: number) => {
+                    const tournament = item.tournament;
+                    const team = item.team;
+                    
+                    return (
+                      <div key={tournament._id || index} className="border rounded-lg p-4 hover:bg-muted/50 transition-colors">
+                        <div className="flex items-start justify-between mb-3">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              <h4 className="font-semibold text-lg">{tournament.title}</h4>
+                              <Badge className={getTournamentStatusColor(tournament.status)}>
+                                {tournament.status}
+                              </Badge>
+                            </div>
+                            <p className="text-sm text-muted-foreground mb-2">{tournament.description}</p>
+                            
+                            <div className="flex items-center gap-4 text-sm text-muted-foreground mb-2">
+                              <div className="flex items-center gap-1">
+                                <Calendar className="h-4 w-4" />
+                                {formatDate(tournament.date)}
+                              </div>
+                              <div className="flex items-center gap-1">
+                                <MapPin className="h-4 w-4" />
+                                {tournament.location}
+                              </div>
+                              <div className="font-medium text-green-600">
+                                ₹{tournament.prizePool.toLocaleString()}
+                              </div>
+                            </div>
+
+                            {/* Team Information */}
+                            {team && (
+                              <div className="bg-blue-50 dark:bg-blue-900/20 rounded-md p-2 mt-2">
+                                <div className="flex items-center gap-2">
+                                  <Users className="h-4 w-4 text-blue-600" />
+                                  <span className="text-sm font-medium text-blue-800 dark:text-blue-300">
+                                    Registered with: {team.teamName}
+                                  </span>
+                                  <Badge variant="outline" className="text-xs">
+                                    {formatGame(team.game)}
+                                  </Badge>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                        
+                        <div className="flex items-center justify-between">
+                          <div className="text-sm text-muted-foreground">
+                            {tournament.currentRegistrations}/{tournament.maxPlayers} teams registered
+                          </div>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => router.push(`/tournament/${tournament._id}`)}
+                          >
+                            View Details
+                          </Button>
+                        </div>
                       </div>
-                      <Badge variant={tournament.status === "approved" ? "default" : "secondary"}>
-                        {tournament.status}
-                      </Badge>
+                    );
+                  })}
+                  
+                  {myTournamentsData.tournaments.length > 5 && (
+                    <div className="text-center pt-4">
+                      <Button
+                        variant="outline"
+                        onClick={() => router.push("/my-tournaments")}
+                      >
+                        View All Tournaments ({myTournamentsData.totalCount})
+                      </Button>
                     </div>
-                  ))}
+                  )}
                 </div>
               ) : (
                 <div className="text-center py-8">
